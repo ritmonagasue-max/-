@@ -20,22 +20,22 @@
 .bar{height:100%;width:0%;transition:.3s}
 .p1-bar{background:#3b82f6}.p2-bar{background:#ef4444}
 
-/* 盤面を1行20マスに倍増 */
-.board{display:grid;grid-template-columns:repeat(20,1fr);gap:2px;margin:14px 0}
+/* 盤面を1行31マスにして直線状に配置 */
+.board{display:grid;grid-template-columns:repeat(31,1fr);gap:1px;margin:20px 0;background:#cbd5e1;padding:2px;border-radius:4px}
 
-/* マスの高さを42pxから21px（さらに半分）に変更、丸みも最小限に */
-.cell{height:21px;background:#fff;border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 1px 3px #0001;position:relative}
+/* マスの高さを14px（元の約4分の1）に極小化 */
+.cell{height:14px;background:#fff;display:flex;align-items:center;justify-content:center;position:relative;cursor:default}
 
-/* テキストをさらに半分のサイズ（5px〜6px相当）に縮小 */
-.cell-num{font-size:6px;color:#94a3b8;transform:scale(0.8);line-height:1}
+/* 通常マスは小さなドットで表現 */
+.cell-dot{width:4px;height:4px;background:#94a3b8;border-radius:50%}
 
-/* コマの表示サイズをさらに小さく調整 */
-.cell-pieces{display:flex;gap:1px;margin-top:0px;font-size:8px;line-height:1}
+/* スタートとゴールの色分け */
+.start { background: #cbd5e1!important; }
+.goal { background: #22c55e!important; }
+.start .cell-dot, .goal .cell-dot { display: none; }
 
-/* スタートとゴールのスタイル調整 */
-.start .cell-num, .goal .cell-num { font-size: 6px; font-weight: 800; }
-.start { background: #f1f5f9!important; }
-.goal{background:#22c55e!important;color:#fff}.goal .cell-num{color:#fff}
+/* プレイヤーのピン（コマ）をマスの上に配置 */
+.cell-pieces{position:absolute;display:flex;gap:0px;font-size:10px;line-height:1;top:-2px}
 
 .message{background:#fff;border-radius:18px;margin:14px 0;padding:18px;text-align:center;min-height:88px;display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 3px 15px #0001;font-size:15px}
 button{border:0;border-radius:16px;padding:16px;width:100%;font-size:18px;font-weight:800;color:white;transition:.2s;cursor:pointer}
@@ -44,11 +44,6 @@ button{border:0;border-radius:16px;padding:16px;width:100%;font-size:18px;font-w
 button:disabled{opacity:.4;cursor:not-allowed}
 .reset{background:#fff;color:#64748b;margin-top:9px;border:1px solid #cbd5e1;font-size:14px;padding:12px}
 .result{display:none;text-align:center;background:#fff;border-radius:18px;padding:24px;margin-top:14px;box-shadow:0 4px 20px #0001}.show{display:block}
-
-/* スマホ環境では1行10マスにして極端な潰れを防止 */
-@media(max-width:600px){
-  .board{grid-template-columns:repeat(10,1fr)}
-}
 </style>
 </head>
 <body><div class="app">
@@ -86,19 +81,17 @@ button:disabled{opacity:.4;cursor:not-allowed}
 <script>
 const events=[["💼","ボーナス！",200000],["✈️","旅行に行った。20万円使った。",-200000],["💻","副業が当たった！30万円獲得。",300000],["📈","株が上昇！25万円の利益。",250000],["🔧","家電が壊れた……10万円の出費。",-100000],["🎁","臨時収入！15万円ゲット。",150000],["😌","今日は何も起こらなかった。",0]];
 
-// 2人の状態を管理する配列（0: P1, 1: P2）
 let players = [
   {pos:0, age:20, money:1000000, color:"🔵", name:"プレイヤー1"},
   {pos:0, age:20, money:1000000, color:"🔴", name:"プレイヤー2"}
 ];
-let turn = 0; // 0ならP1、1ならP2の番
+let turn = 0;
 let gameOver = false;
 
 const $=x=>document.getElementById(x);
 function yen(n){return "¥"+Math.round(n).toLocaleString("ja-JP")}
 
 function render(){
-  // ステータスの更新
   for(let p=0; p<2; p++){
     const id = p === 0 ? "p1" : "p2";
     $(id+"-age").textContent = players[p].age + "歳";
@@ -107,19 +100,17 @@ function render(){
     $(id+"-bar").style.width = (players[p].pos / 30 * 100) + "%";
   }
 
-  // 盤面の再描画
   let b=$("board");
   b.innerHTML="";
   for(let i=0;i<=30;i++){
     let d=document.createElement("div");
     d.className="cell "+(i==0?"start":i==30?"goal":"");
+    d.title = i==0?"START":i==30?"GOAL":"マス "+i;
     
-    let numSpan = document.createElement("span");
-    numSpan.className = "cell-num";
-    numSpan.textContent = i==0?"START":i==30?"GOAL":i;
-    d.appendChild(numSpan);
+    let dot = document.createElement("div");
+    dot.className = "cell-dot";
+    d.appendChild(dot);
 
-    // コマの表示
     let piecesDiv = document.createElement("div");
     piecesDiv.className = "cell-pieces";
     if(players[0].pos === i) piecesDiv.innerHTML += "🔵";
@@ -129,7 +120,6 @@ function render(){
     b.appendChild(d);
   }
 
-  // ボタンの見た目を現在の手番に合わせる
   if(!gameOver) {
     const nextP = players[turn];
     $("roll").className = turn === 0 ? "btn-p1" : "btn-p2";
@@ -150,13 +140,11 @@ $("roll").onclick=()=>{
     p.age+=dice;
     p.money+=dice*70000;
 
-    // ゴール判定
     if(p.pos>=30){
       gameOver = true;
-      p.money += 500000; // 先にゴールした人に50万円ボーナス！
+      p.money += 500000;
       $("message").textContent = `🎲 ${dice}！${p.color} ${p.name}がゴールに到着！`;
       
-      // 勝敗判定（最終資産が多い方）
       let winner = players[0].money > players[1].money ? players[0] : players[1];
       let isDraw = players[0].money === players[1].money;
       
@@ -179,14 +167,11 @@ $("roll").onclick=()=>{
       return;
     }
 
-    // イベント発生
     let e=events[Math.floor(Math.random()*events.length)];
     p.money+=e[2];
     $("message").textContent = `🎲 ${p.name}は ${dice} マス進んだ！\n【イベント】${e[0]} ${e[1]}`;
     
-    // ターンを交代
     turn = turn === 0 ? 1 : 0;
-    
     render();
     $("roll").disabled=false;
   }, 600);
@@ -206,3 +191,4 @@ $("reset").onclick=()=>{
 };
 
 render();
+</script></body></html>

@@ -22,7 +22,12 @@
 .board{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:14px 0}
 .cell{height:58px;background:#fff;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:700;box-shadow:0 2px 7px #0001;position:relative}
 .cell-num{font-size:11px;color:#94a3b8}.cell-pieces{display:flex;gap:3px;margin-top:2px;font-size:14px}
+
+/* スタートとゴールのマスの文字サイズを小さく調整 */
+.start .cell-num, .goal .cell-num { font-size: 9px; font-weight: 800; }
+.start { background: #f1f5f9!important; }
 .goal{background:#22c55e!important;color:#fff}.goal .cell-num{color:#fff}
+
 .message{background:#fff;border-radius:18px;margin:14px 0;padding:18px;text-align:center;min-height:88px;display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 3px 15px #0001;font-size:15px}
 button{border:0;border-radius:16px;padding:16px;width:100%;font-size:18px;font-weight:800;color:white;transition:.2s;cursor:pointer}
 .btn-p1{background:#3b82f6}.btn-p1:hover{background:#2563eb}
@@ -93,7 +98,8 @@ function render(){
   b.innerHTML="";
   for(let i=0;i<=30;i++){
     let d=document.createElement("div");
-    d.className="cell "+(i==30?"goal":"");
+    // i=0ならstart、i=30ならgoalのクラスを付与
+    d.className="cell "+(i==0?"start":i==30?"goal":"");
     
     let numSpan = document.createElement("span");
     numSpan.className = "cell-num";

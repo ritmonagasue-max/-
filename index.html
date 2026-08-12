@@ -4,224 +4,38 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#4f46e5">
-<title>人生ゲーム - 2人プレイ(完全動作版)</title>
+<title>人生ゲーム</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(135deg,#eef2ff,#faf5ff);color:#171717}
-.app{max-width:900px;margin:auto;padding:18px 14px 30px}.title{text-align:center;font-size:30px;font-weight:800;margin:8px 0 14px}
-.players-container{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
-.player-section{background:#fff;border-radius:18px;padding:12px;box-shadow:0 3px 15px #0001;border-top:6px solid #ccc}
-.p1-section{border-color:#3b82f6}.p2-section{border-color:#ef4444}
-.p-name{font-size:16px;font-weight:800;text-align:center;margin-bottom:8px}
-.p1-name{color:#3b82f6}.p2-name{color:#ef4444}
-.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
-.card{background:#f8fafc;border-radius:10px;padding:8px;text-align:center}
-.label{font-size:11px;color:#64748b}.value{font-size:14px;font-weight:800;margin-top:2px}
-.progress-container{height:8px;background:#e2e8f0;border-radius:20px;overflow:hidden;margin-top:8px}
-.bar{height:100%;width:0%;transition:.3s}
-.p1-bar{background:#3b82f6}.p2-bar{background:#ef4444}
-
-.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin:14px 0}
-.cell{min-height:85px;background:#fff;border-radius:10px;padding:6px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;font-size:11px;font-weight:700;box-shadow:0 2px 7px #0001;position:relative;text-align:center}
-.cell-num{font-size:10px;color:#94a3b8;align-self:flex-start}
-.cell-text{font-size:11px;line-height:1.2;margin:2px 0}
-.cell-money{font-size:10px;font-weight:800}
-.money-plus{color:#22c55e}.money-minus{color:#ef4444}
-.cell-pieces{display:flex;gap:4px;font-size:14px;min-height:20px;justify-content:center;align-items:center}
-.start-cell{background:#e0f2fe!important}
-.payday-cell{background:#fef08a!important;border:2px dashed #eab308}
-.goal-cell{background:#bbf7d0!important}
-
-.message{background:#fff;border-radius:18px;margin:14px 0;padding:18px;text-align:center;min-height:88px;display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 3px 15px #0001;font-size:15px;line-height:1.4;white-space:pre-line}
-button{border:0;border-radius:16px;padding:16px;width:100%;font-size:18px;font-weight:800;color:white;transition:.2s;cursor:pointer}
-.btn-p1{background:#3b82f6}.btn-p1:hover{background:#2563eb}
-.btn-p2{background:#ef4444}.btn-p2:hover{background:#dc2626}
-button:disabled{opacity:.4;cursor:not-allowed}
-.reset{background:#fff;color:#64748b;margin-top:9px;border:1px solid #cbd5e1;font-size:14px;padding:12px}
-.result{display:none;text-align:center;background:#fff;border-radius:18px;padding:24px;margin-top:14px;box-shadow:0 4px 20px #0001}.show{display:block}
+.app{max-width:720px;margin:auto;padding:18px 14px 30px}.title{text-align:center;font-size:30px;font-weight:800;margin:8px 0 14px}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.card{background:#fff;border-radius:16px;padding:11px;text-align:center;box-shadow:0 3px 15px #0001}.label{font-size:12px;color:#777}.value{font-size:17px;font-weight:800;margin-top:3px}
+.progress{height:10px;background:#ddd;border-radius:20px;overflow:hidden;margin:14px 0}.bar{height:100%;background:#4f46e5;width:0%;transition:.3s}
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.cell{height:52px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;box-shadow:0 2px 7px #0001}.current{background:#f59e0b!important;color:#fff}.goal{background:#22c55e!important;color:#fff}
+.message{background:#fff;border-radius:18px;margin:14px 0;padding:18px;text-align:center;min-height:88px;display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 3px 15px #0001}
+button{border:0;border-radius:16px;padding:16px;width:100%;font-size:18px;font-weight:800;background:#4f46e5;color:white}button:disabled{opacity:.5}.reset{background:#fff;color:#4f46e5;margin-top:9px;border:1px solid #ddd;font-size:14px;padding:12px}..result{display:none;text-align:center;background:#fff;border-radius:18px;padding:18px;margin-top:14px}.show{display:block}
 </style>
 </head>
 <body><div class="app">
-<div class="title">🎲 人生ゲーム (2P固定イベント版)</div>
-
-<div class="players-container">
-  <div class="player-section p1-section">
-    <div class="p-name p1-name">プレイヤー1 (🔵)</div>
-    <div class="stats">
-      <div class="card"><div class="label">年齢</div><div class="value" id="p1-age">20歳</div></div>
-      <div class="card"><div class="label">資産</div><div class="value" id="p1-money">¥1,000,000</div></div>
-      <div class="card"><div class="label">マス</div><div class="value" id="p1-pos">0/30</div></div>
-    </div>
-    <div class="progress-container"><div class="bar p1-bar" id="p1-bar"></div></div>
-  </div>
-  <div class="player-section p2-section">
-    <div class="p-name p2-name">プレイヤー2 (🔴)</div>
-    <div class="stats">
-      <div class="card"><div class="label">年齢</div><div class="value" id="p2-age">20歳</div></div>
-      <div class="card"><div class="label">資産</div><div class="value" id="p2-money">¥1,000,000</div></div>
-      <div class="card"><div class="label">マス</div><div class="value" id="p2-pos">0/30</div></div>
-    </div>
-    <div class="progress-container"><div class="bar p2-bar" id="p2-bar"></div></div>
-  </div>
+<div class="title">🎲 人生ゲーム</div>
+<div class="stats">
+<div class="card"><div class="label">年齢</div><div class="value" id="age">20歳</div></div>
+<div class="card"><div class="label">資産</div><div class="value" id="money">¥1,000,000</div></div>
+<div class="card"><div class="label">マス</div><div class="value" id="pos">0 / 30</div></div>
 </div>
-
+<div class="progress"><div class="bar" id="bar"></div></div>
 <div class="board" id="board"></div>
-<div class="message" id="message">ゲーム開始！プレイヤー1の番です。</div>
-<button id="roll" class="btn-p1">🔵 プレイヤー1がサイコロを振る</button>
-<button class="reset" id="reset">最初からやり直す</button>
+<div class="message" id="message">人生ゲーム開始！サイコロを振ろう。</div>
+<button id="roll">🎲 サイコロを振る</button>
+<button class="reset" id="reset">最初から</button>
 <div class="result" id="result"></div>
 </div>
-
 <script>
-const boardEvents = [
-  {title: "START", text: "人生スタート！", money: 0, type: "start"},
-  {title: "1", text: "💻 初任給ゲット", money: 200000},
-  {title: "2", text: "✈️ 初めての海外旅行", money: -150000},
-  {title: "3", text: "📈 投資信託を始める", money: 50000},
-  {title: "4", text: "🔧 スマホが画面割れ", money: -50000},
-  {title: "5", text: "🎁 宝くじで3等当選！", money: 100000},
-  {title: "6", text: "🚙 中古車を購入", money: -300000},
-  {title: "7", text: "💼 資格取得で手当支給", money: 80000},
-  {title: "8", text: "🦷 親知らずを抜歯", money: -20000},
-  {title: "9", text: "🛍 ふるさと納税にハマる", money: -40000},
-  {title: "給料日", text: "✨ 昇進！給料日ボーナス", money: 500000, type: "payday"},
-  {title: "11", text: "💍 結婚式を挙げる", money: -400000},
-  {title: "12", text: "👶 第一子が誕生！お祝い", money: 200000},
-  {title: "13", text: "☕ カフェ巡りが趣味に", money: -30000},
-  {title: "14", text: "💻 副業が大ヒット！", money: 300000},
-  {title: "15", text: "🏠 賃賃の更新料を支払う", money: -150000},
-  {title: "16", text: "🏥 健康診断で再検査", money: -50000},
-  {title: "17", text: "🎰 競馬で大負けする", money: -100000},
-  {title: "18", text: "📦 メルカリで不用品処分", money: 60000},
-  {title: "19", text: "🍔 食費がじわじわ家計を圧迫", money: -40000},
-  {title: "給料日", text: "🚀 独立起業！事業大成功", money: 800000, type: "payday"},
-  {title: "21", text: "🏡 マイホームを購入！", money: -600000},
-  {title: "22", text: "📺 テレビに出演して謝礼金", money: 150000},
-  {title: "23", text: "📉 謎の仮想通貨が暴落", money: -250000},
-  {title: "24", text: "🎨 趣味の絵が高く売れた", money: 100000},
-  {title: "25", text: "🚗 車の車検を通す", money: -120000},
-  {title: "26", text: "👵 遺産を相続する", money: 400000},
-  {title: "27", text: "🍷 高級ワインを買ってみた", money: -80000},
-  {title: "28", text: "📱 SNSがバズって広告収入", money: 200000},
-  {title: "29", text: "🏃‍♂️ 健康のためジムに入会", money: -60000},
-  {title: "GOAL", text: "🎉 定年退職！ゴール！", money: 500000, type: "goal"}
-];
-
-// 完全に独立した変数にしてバグを回避
-let p1 = {pos:0, age:20, money:1000000, color:"🔵", name:"プレイヤー1"};
-let p2 = {pos:0, age:20, money:1000000, color:"🔴", name:"プレイヤー2"};
-let turn = 1; // 1ならP1、2ならP2
-let gameOver = false;
-
+const events=[["💼","ボーナス！",200000],["✈️","旅行に行った。20万円使った。",-200000],["💻","副業が当たった！30万円獲得。",300000],["📈","株が上昇！25万円の利益。",250000],["🔧","家電が壊れた……10万円の出費。",-100000],["🎁","臨時収入！15万円ゲット。",150000],["😌","今日は何も起こらなかった。",0]];
+let s={pos:0,age:20,money:1000000};
 const $=x=>document.getElementById(x);
-function yen(n){return (n >= 0 ? "+" : "") + "¥" + Math.round(n).toLocaleString("ja-JP")}
-function yenPlain(n){return "¥" + Math.round(n).toLocaleString("ja-JP")}
-
-function render(){
-  // P1ステータス更新
-  $("p1-age").textContent = p1.age + "歳";
-  $("p1-money").textContent = yenPlain(p1.money);
-  $("p1-pos").textContent = p1.pos + " / 30";
-  $("p1-bar").style.width = (p1.pos / 30 * 100) + "%";
-
-  // P2ステータス更新
-  $("p2-age").textContent = p2.age + "歳";
-  $("p2-money").textContent = yenPlain(p2.money);
-  $("p2-pos").textContent = p2.pos + " / 30";
-  $("p2-bar").style.width = (p2.pos / 30 * 100) + "%";
-
-  let b=$("board");
-  b.innerHTML="";
-  for(let i=0; i<boardEvents.length; i++){
-    const ev = boardEvents[i];
-    let d = document.createElement("div");
-    
-    let typeClass = "";
-    if(ev.type === "start") typeClass = "start-cell";
-    else if(ev.type === "payday") typeClass = "payday-cell";
-    else if(ev.type === "goal") typeClass = "goal-cell";
-    d.className = `cell ${typeClass}`;
-    
-    let numSpan = document.createElement("span");
-    numSpan.className = "cell-num";
-    numSpan.textContent = ev.title;
-    d.appendChild(numSpan);
-
-    let textDiv = document.createElement("div");
-    textDiv.className = "cell-text";
-    textDiv.textContent = ev.text;
-    d.appendChild(textDiv);
-
-    if(ev.money !== 0) {
-      let moneyDiv = document.createElement("div");
-      moneyDiv.className = "cell-money " + (ev.money > 0 ? "money-plus" : "money-minus");
-      moneyDiv.textContent = yen(ev.money);
-      d.appendChild(moneyDiv);
-    } else {
-      let emptyDiv = document.createElement("div");
-      d.appendChild(emptyDiv);
-    }
-
-    // 独立した変数で安全に位置を判定してコマを表示
-    let piecesDiv = document.createElement("div");
-    piecesDiv.className = "cell-pieces";
-    if(p1.pos === i) piecesDiv.innerHTML += "🔵";
-    if(p2.pos === i) piecesDiv.innerHTML += "🔴";
-    d.appendChild(piecesDiv);
-
-    b.appendChild(d);
-  }
-
-  if(!gameOver) {
-    if(turn === 1) {
-      $("roll").className = "btn-p1";
-      $("roll").textContent = "🔵 プレイヤー1がサイコロを振る";
-    } else {
-      $("roll").className = "btn-p2";
-      $("roll").textContent = "🔴 プレイヤー2がサイコロを振る";
-    }
-  }
-}
-
-$("roll").onclick=()=>{
-  if(gameOver) return;
-  $("roll").disabled = true;
-  
-  // 現在のプレイヤーを判定
-  let p = (turn === 1) ? p1 : p2;
-  let oldPos = p.pos;
-  $("message").textContent = `${p.color} ${p.name}がサイコロを振っています…`;
-
-  setTimeout(()=>{
-    let dice = Math.floor(Math.random() * 6) + 1;
-    let nextPos = Math.min(30, p.pos + dice);
-    
-    p.age += dice;
-    let msgText = `🎲 ${p.color} ${p.name}は「${dice}」を出した！\n`;
-
-    // 給料日の通過ボーナスチェック
-    let messagePayday = "";
-    for(let checkPos = oldPos + 1; checkPos <= nextPos; checkPos++) {
-      if(checkPos < 30 && boardEvents[checkPos].type === "payday") {
-        p.money += boardEvents[checkPos].money;
-        messagePayday += `💰 通過ボーナス！【${boardEvents[checkPos].text}】で ${yenPlain(boardEvents[checkPos].money)} 獲得！\n`;
-      }
-    }
-
-    p.pos = nextPos;
-    let currentEvent = boardEvents[p.pos];
-
-    if(p.pos >= 30){
-      gameOver = true;
-      p.money += currentEvent.money;
-      msgText += `🎉 ゴールに到着！ ${currentEvent.text} (${yenPlain(currentEvent.money)})\n` + messagePayday;
-      $("message").textContent = msgText;
-      
-      render();
-      $("roll").disabled = true;
-      $("result").className = "result show";
-      
-      // 勝敗の安全な判定
-      let winnerText = "";
-      if(p1.money > p2.money) {
-        winnerText = `👑 最終勝者: <strong>${p1.name} (${p1.color})</strong>`;
-      } else if(p2.money > p1.money) {
+function yen(n){return "¥"+Math.round(n).toLocaleString("ja-JP")}
+function render(){ $("age").textContent=s.age+"歳";$("money").textContent=yen(s.money);$("pos").textContent=s.pos+" / 30";$("bar").style.width=s.pos/30*100+"%";let b=$("board");b.innerHTML="";for(let i=0;i<=30;i++){let d=document.createElement("div");d.className="cell "+(i==s.pos?"current ":"")+(i==30?"goal":"");d.textContent=i==0?"START":i==30?"GOAL":i;b.appendChild(d)}}
+$("roll").onclick=()=>{ $("roll").disabled=true;$("message").textContent="🎲 サイコロを振っています…";setTimeout(()=>{let dice=Math.floor(Math.random()*6)+1;s.pos=Math.min(30,s.pos+dice);s.age+=dice;s.money+=dice*70000;if(s.pos>=30){$("message").textContent="🎲 "+dice+"！ゴールに到着！";render();$("result").className="result show";$("result").innerHTML="<h2>🎉 ゴール！</h2><div>最終資産</div><strong style='font-size:28px'>"+yen(s.money)+"</strong>";return}let e=events[Math.floor(Math.random()*events.length)];s.money+=e[2];$("message").textContent="🎲 "+dice+"マス進んだ！ "+e[0]+" "+e[1];render();$("roll").disabled=false},600)};
+$("reset").onclick=()=>{s={pos:0,age:20,money:1000000};$("message").textContent="人生ゲーム開始！サイコロを振ろう。";$("result").className="result";$("roll").disabled=false;render()};
+render();
+</script></body></html>

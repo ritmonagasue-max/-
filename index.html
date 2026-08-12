@@ -20,18 +20,20 @@
 .bar{height:100%;width:0%;transition:.3s}
 .p1-bar{background:#3b82f6}.p2-bar{background:#ef4444}
 
-/* 盤面を1行10マス（PC/タブレット）に変更 */
-.board{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin:14px 0}
+/* 盤面を1行20マスに倍増 */
+.board{display:grid;grid-template-columns:repeat(20,1fr);gap:2px;margin:14px 0}
 
-/* マスの高さを58pxから42pxに、角丸も少しシャープに縮小 */
-.cell{height:42px;background:#fff;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:700;box-shadow:0 2px 5px #0001;position:relative}
-.cell-num{font-size:10px;color:#94a3b8}
+/* マスの高さを42pxから21px（さらに半分）に変更、丸みも最小限に */
+.cell{height:21px;background:#fff;border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 1px 3px #0001;position:relative}
 
-/* コマの表示サイズを少し小さく、余白を調整 */
-.cell-pieces{display:flex;gap:2px;margin-top:1px;font-size:12px}
+/* テキストをさらに半分のサイズ（5px〜6px相当）に縮小 */
+.cell-num{font-size:6px;color:#94a3b8;transform:scale(0.8);line-height:1}
 
-/* スタートとゴールのマスの文字サイズをさらに小さく調整 */
-.start .cell-num, .goal .cell-num { font-size: 8px; font-weight: 800; }
+/* コマの表示サイズをさらに小さく調整 */
+.cell-pieces{display:flex;gap:1px;margin-top:0px;font-size:8px;line-height:1}
+
+/* スタートとゴールのスタイル調整 */
+.start .cell-num, .goal .cell-num { font-size: 6px; font-weight: 800; }
 .start { background: #f1f5f9!important; }
 .goal{background:#22c55e!important;color:#fff}.goal .cell-num{color:#fff}
 
@@ -43,9 +45,9 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .reset{background:#fff;color:#64748b;margin-top:9px;border:1px solid #cbd5e1;font-size:14px;padding:12px}
 .result{display:none;text-align:center;background:#fff;border-radius:18px;padding:24px;margin-top:14px;box-shadow:0 4px 20px #0001}.show{display:block}
 
-/* スマホなどの狭い画面では1行5マスにして見やすさを維持 */
+/* スマホ環境では1行10マスにして極端な潰れを防止 */
 @media(max-width:600px){
-  .board{grid-template-columns:repeat(5,1fr)}
+  .board{grid-template-columns:repeat(10,1fr)}
 }
 </style>
 </head>
@@ -77,7 +79,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 <div class="board" id="board"></div>
 <div class="message" id="message">ゲーム開始！プレイヤー1の番です。</div>
 <button id="roll" class="btn-p1">🔵 プレイヤー1がサイコロを振る</button>
-<button class="reset" id="reset">最初からやり難す</button>
+<button class="reset" id="reset">最初からやり直す</button>
 <div class="result" id="result"></div>
 </div>
 

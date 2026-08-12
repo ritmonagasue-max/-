@@ -1,76 +1,86 @@
+ご提示いただいたエピソードと金額（全65項目）をすべて反映し、盤面を**全65マス＋GOAL**にアップデートしました。
+
+テキストが長めのマス（例：「合格発表は父親より…」など）も盤面で崩れないよう、マス内ではすっきり省略表示され、**止まった際に中央のメッセージ画面で全文と収支が表示される**ように調整しています。
+
+```html
 <!doctype html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#4f46e5">
-<title>人生ゲーム - マス文字表示版</title>
+<meta name="theme-color" content="#18181b">
+<title>人生ゲーム - オリジナル65マス版</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(135deg,#eef2ff,#faf5ff);color:#171717}
-.app{max-width:800px;margin:auto;padding:18px 14px 30px}
-.title{text-align:center;font-size:28px;font-weight:800;margin:8px 0 14px}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0f172a;color:#f8fafc}
+.app{max-width:1100px;margin:auto;padding:18px 14px 30px}
+.title{text-align:center;font-size:26px;font-weight:800;margin:8px 0 14px;color:#f8fafc}
 
 /* 人数設定エリア */
-.setup-container{background:#fff;border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 2px 10px #0001}
-.setup-container label{font-weight:700;font-size:14px}
-.setup-container select{padding:6px 12px;border-radius:8px;border:1px solid #cbd5e1;font-size:15px;font-weight:700}
+.setup-container{background:#1e293b;border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:12px;border:1px solid #334155}
+.setup-container label{font-weight:700;font-size:14px;color:#cbd5e1}
+.setup-container select{padding:6px 12px;border-radius:8px;border:1px solid #475569;background:#0f172a;color:#fff;font-size:15px;font-weight:700}
 
 /* プレイヤー一覧 */
 .players-container{display:grid;grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));gap:10px;margin-bottom:14px}
-.player-section{background:#fff;border-radius:14px;padding:10px;box-shadow:0 3px 12px #0001;border-top:5px solid #ccc;transition:.2s}
+.player-section{background:#1e293b;border-radius:14px;padding:10px;box-shadow:0 3px 12px #0005;border-top:5px solid #ccc;transition:.2s}
 .p-name{font-size:14px;font-weight:800;text-align:center;margin-bottom:6px}
 .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px}
-.card{background:#f8fafc;border-radius:8px;padding:6px 2px;text-align:center}
-.label{font-size:10px;color:#64748b}.value{font-size:12px;font-weight:800;margin-top:2px}
-.progress-container{height:6px;background:#e2e8f0;border-radius:20px;overflow:hidden;margin-top:6px}
+.card{background:#0f172a;border-radius:8px;padding:6px 2px;text-align:center;border:1px solid #334155}
+.label{font-size:10px;color:#94a3b8}.value{font-size:12px;font-weight:800;margin-top:2px}
+.progress-container{height:6px;background:#334155;border-radius:20px;overflow:hidden;margin-top:6px}
 .bar{height:100%;width:0%;transition:.3s}
 
-/* 盤面表示（文字が入るように高さを調整） */
-.board{display:grid;grid-template-columns:repeat(20,1fr);gap:3px;margin:14px 0}
-.cell{height:42px;background:#fff;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:2px 1px;box-shadow:0 1px 3px #0001;position:relative;overflow:hidden}
-.cell-num{font-size:7px;color:#94a3b8;font-weight:800;line-height:1}
+/* 盤面表示（PCで1行13マス配置 × 5行 ＝ 全66マス） */
+.board{display:grid;grid-template-columns:repeat(13,1fr);gap:3px;margin:14px 0}
+.cell{height:52px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:3px 2px;box-shadow:0 1px 3px #0005;position:relative;overflow:hidden}
+.cell-num{font-size:8px;font-weight:800;line-height:1;opacity:0.8}
+
+/* 赤黒2色テーマ */
+.cell-black { background: #1e293b; border: 1px solid #334155; color: #f8fafc; }
+.cell-red { background: #881337; border: 1px solid #e11d48; color: #fff1f2; }
+
+.start { background: #334155!important; border-color: #64748b!important; color: #fff!important; }
+.goal { background: #15803d!important; border-color: #22c55e!important; color: #fff!important; }
 
 /* マスの中の文章スタイル */
-.cell-text{font-size:7px;color:#334155;font-weight:700;text-align:center;line-height:1.1;white-space:nowrap;transform:scale(0.85);margin:-2px 0}
+.cell-text{font-size:8px;font-weight:700;text-align:center;line-height:1.1;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell-price{font-size:7px;line-height:1;opacity:0.9;font-weight:700}
+.cell-pieces{display:flex;gap:1px;font-size:8px;line-height:1;flex-wrap:wrap;justify-content:center;min-height:10px}
 
-.cell-pieces{display:flex;gap:1px;font-size:8px;line-height:1;flex-wrap:wrap;justify-content:center;min-height:9px}
-.start { background: #f1f5f9!important; }
-.goal{background:#22c55e!important;color:#fff}.goal .cell-num, .goal .cell-text{color:#fff}
-
-.message{background:#fff;border-radius:18px;margin:14px 0;padding:16px;text-align:center;min-height:80px;display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 3px 15px #0001;font-size:15px;white-space:pre-wrap;line-height:1.5}
+.message{background:#1e293b;border-radius:18px;margin:14px 0;padding:16px;text-align:center;min-height:85px;display:flex;align-items:center;justify-content:center;font-weight:700;border:1px solid #334155;font-size:15px;white-space:pre-wrap;line-height:1.5;color:#f8fafc}
 
 /* ボタン各種 */
 button{border:0;border-radius:16px;padding:16px;width:100%;font-size:18px;font-weight:800;color:white;transition:.2s;cursor:pointer}
-button:disabled{opacity:.4;cursor:not-allowed}
-.reset{background:#fff;color:#64748b;margin-top:9px;border:1px solid #cbd5e1;font-size:14px;padding:12px}
-.result{display:none;text-align:center;background:#fff;border-radius:18px;padding:24px;margin-top:14px;box-shadow:0 4px 20px #0001}.show{display:block}
+button:disabled{opacity:.3;cursor:not-allowed}
+.reset{background:#1e293b;color:#94a3b8;margin-top:9px;border:1px solid #334155;font-size:14px;padding:12px}
+.result{display:none;text-align:center;background:#1e293b;border-radius:18px;padding:24px;margin-top:14px;border:1px solid #334155}.show{display:block}
 
-/* プレイヤーごとの色設定 */
-.p-color-0 { border-color: #3b82f6!important; color: #3b82f6; }
-.p-color-1 { border-color: #ef4444!important; color: #ef4444; }
-.p-color-2 { border-color: #22c55e!important; color: #22c55e; }
-.p-color-3 { border-color: #eab308!important; color: #ca8a04; }
+/* プレイヤー色 */
+.p-color-0 { border-color: #3b82f6!important; color: #60a5fa; }
+.p-color-1 { border-color: #ef4444!important; color: #f87171; }
+.p-color-2 { border-color: #22c55e!important; color: #4ade80; }
+.p-color-3 { border-color: #eab308!important; color: #facc15; }
 
 .bar-0 { background: #3b82f6; }
 .bar-1 { background: #ef4444; }
 .bar-2 { background: #22c55e; }
 .bar-3 { background: #eab308; }
 
-.btn-p0 { background: #3b82f6; } .btn-p0:hover { background: #2563eb; }
-.btn-p1 { background: #ef4444; } .btn-p1:hover { background: #dc2626; }
-.btn-p2 { background: #22c55e; } .btn-p2:hover { background: #16a34a; }
-.btn-p3 { background: #eab308; } .btn-p3:hover { background: #ca8a04; }
+.btn-p0 { background: #2563eb; } .btn-p0:hover { background: #1d4ed8; }
+.btn-p1 { background: #dc2626; } .btn-p1:hover { background: #b91c1c; }
+.btn-p2 { background: #16a34a; } .btn-p2:hover { background: #15803d; }
+.btn-p3 { background: #ca8a04; } .btn-p3:hover { background: #a16207; }
 
-@media(max-width:600px){
-  .board{grid-template-columns:repeat(10,1fr)}
+@media(max-width:768px){
+  .board{grid-template-columns:repeat(8,1fr)}
   .players-container{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
 <body>
 <div class="app">
-<div class="title">🎲 人生ゲーム</div>
+<div class="title">🎲 人生ゲーム (全65マスリアル人生版)</div>
 
 <div class="setup-container">
   <label for="player-count">プレイ人数:</label>
@@ -91,6 +101,76 @@ button:disabled{opacity:.4;cursor:not-allowed}
 </div>
 
 <script>
+const TOTAL_CELLS = 66; // 0=START, 1〜65=イベント, 66=GOAL
+
+const CUSTOM_EVENTS = {
+  1:  { label: "青森で生まれる", val: 50000 },
+  2:  { label: "夏休みの定番青森を満喫", val: 10000 },
+  3:  { label: "体育の授業が嫌な仲間集めで担任の手を焼く", val: -1000 },
+  4:  { label: "消しバト(消しピン)にハマり腕を磨く", val: 10000 },
+  5:  { label: "消しゴムの激落ちくんシリーズをコンプリートする", val: -1000 },
+  6:  { label: "川で遊ぶ会を楽しむ", val: 40000 },
+  7:  { label: "ピアノを少し習う", val: 40000 },
+  8:  { label: "友達のゲームを横から見ていたことで目を悪くする", val: -1000 },
+  9:  { label: "友人からカードをもらって対戦", val: 5000 },
+  10: { label: "おこづかいでパックを購入", val: -1000 },
+  11: { label: "落ちているものはゴミ理論でカードが捨てられてしまう", val: -10000 },
+  12: { label: "落木の回転に巻き込まれて骨折をしてしまう", val: -20000 },
+  13: { label: "授業態度よくないため、親を呼ばれる", val: -1000 },
+  14: { label: "川崎から千葉へ転居、家賃が安くなるらしい", val: 1000 },
+  15: { label: "夏休みの定番青森を満喫", val: 10000 },
+  16: { label: "成績よかったため、父親からボーナス", val: 10000 },
+  17: { label: "学級委員を務める", val: 40000 },
+  18: { label: "顔が広く、毎日が充実", val: 100000 },
+  19: { label: "登下校往復4kmだが、雑談が楽しい", val: 70000 },
+  20: { label: "秘密基地を建設し充実", val: 20000 },
+  21: { label: "友人同士でディズニーランド行く計画は親の一声で自分だけ不参加", val: -30000 },
+  22: { label: "千葉から岡山へ転居、教育が充実してる地区らしい", val: 1000 },
+  23: { label: "学級委員立候補も落選", val: -5000 },
+  24: { label: "サッカー部の先輩に可愛がられる", val: 20000 },
+  25: { label: "サッカー部の先輩卒業を機に完全に幽霊部員へ", val: -1000 },
+  26: { label: "成績右肩下がりのため、DSを真っ二つにされる", val: -5000 },
+  27: { label: "クラス内で面白いキャラとして立場を確立", val: 10000 },
+  28: { label: "親からの高校合格祝", val: 10000 },
+  29: { label: "合格発表は父親より無表情を指示されていたため、同級生からは落ちたと思われていた", val: 4000 },
+  30: { label: "塾なしで市内3位の公立高校へ進学できた自分へ満足", val: 1000000 },
+  31: { label: "DSi2台購入", val: -10000 },
+  32: { label: "岡山将棋大会B級準優勝し2級になる", val: 3000 },
+  33: { label: "岡山囲碁大会B級優勝で2級になる", val: 5000 },
+  34: { label: "岡山囲碁大会A級4位で2段になる", val: 10000 },
+  35: { label: "振り子式の特急で嘔吐し中国地区囲碁大会初日全負け", val: -4000 },
+  36: { label: "パワプロくんにはまる", val: -10000 },
+  37: { label: "パスドラにはまる", val: -10000 },
+  38: { label: "掃除さぼって部活へ直行するも担任にバレる", val: -1000 },
+  39: { label: "とあるラジオにはまる", val: 7000 },
+  40: { label: "授業が楽しい、仲良い人との雑談も楽しい", val: 50000 },
+  41: { label: "夏休みの定番青森を満喫", val: 10000 },
+  42: { label: "自由英作文を担任に提出し添削してもらう日々 それなりに充実", val: 9000 },
+  43: { label: "国立大学へ無事合格", val: 15000 },
+  44: { label: "塾なしで進学できた自分へ満足", val: 2000000 },
+  45: { label: "一人暮らし開始", val: 9000 },
+  46: { label: "バイト2つをこなす", val: 7000 },
+  47: { label: "プロスピにはまる", val: -20000 },
+  48: { label: "キングダムにはまる", val: -5000 },
+  49: { label: "親の仕送りで貯蓄開始", val: 30000 },
+  50: { label: "コロナを口実に実家へ寄生", val: 10000 },
+  51: { label: "バイト1つクビになる", val: -1000 },
+  52: { label: "嫌われてるのか単位くれない講義あり苦戦", val: -5000 },
+  53: { label: "教育実習やりきり！", val: 30000 },
+  54: { label: "ポケモンGOでウロウロ", val: 5000 },
+  55: { label: "大学単位OK", val: 10000 },
+  56: { label: "リモートで就活終了", val: 20000 },
+  57: { label: "研修課で手を抜いてたため、課長に嫌われる", val: -1000 },
+  58: { label: "配属先チームでいい人間関係を構築", val: 30000 },
+  59: { label: "社会人1年目貯金100万達成", val: 10000 },
+  60: { label: "社会人2年目人生初彼女", val: 40000 },
+  61: { label: "数ヵ月で終了", val: -50000 },
+  62: { label: "フル出社だが充実した日々", val: 25000 },
+  63: { label: "社会人4年目また彼女", val: 30000 },
+  64: { label: "9ヵ月で終了", val: -40000 },
+  65: { label: "目標資産達成", val: 10000 }
+};
+
 const PLAYER_CONFIGS = [
   { color: "🔵", name: "プレイヤー1" },
   { color: "🔴", name: "プレイヤー2" },
@@ -98,27 +178,19 @@ const PLAYER_CONFIGS = [
   { color: "🟡", name: "プレイヤー4" }
 ];
 
-// マスに割り当てるイベントマスター（表示用ラベルと詳細文章）
-const EVENT_POOL = [
-  { emoji: "💼", label: "ボーナス", detail: "ボーナス発生！20万円獲得。", val: 200000 },
-  { emoji: "✈️", label: "旅行", detail: "旅行に行った。20万円使った。", val: -200000 },
-  { emoji: "💻", label: "副業", detail: "副業が当たった！30万円獲得。", val: 300000 },
-  { emoji: "📈", label: "株上昇", detail: "株が上昇！25万円の利益。", val: 250000 },
-  { emoji: "🔧", label: "家電故障", detail: "家電が壊れた……10万円の出費。", val: -100000 },
-  { emoji: "🎁", label: "臨時収入", detail: "臨時収入！15万円ゲット。", val: 150000 },
-  { emoji: "😌", label: "平穏", detail: "今日は何も起こらなかった。", val: 0 }
-];
-
 let players = [];
-let boardEvents = []; // 各マスのイベントを保持（1〜29マス）
+let boardEvents = [];
 let turn = 0;
 let gameOver = false;
 let goalRank = 1;
 
 const $=x=>document.getElementById(x);
-function yen(n){return "¥"+Math.round(n).toLocaleString("ja-JP")}
+function yen(n){
+  if(n === 0) return "±0円";
+  const sign = n > 0 ? "+" : "";
+  return sign + n.toLocaleString("ja-JP") + "円";
+}
 
-// ゲーム初期化（盤面イベントもここで生成）
 function initGame(){
   const count = parseInt($("player-count").value, 10);
   players = [];
@@ -126,19 +198,17 @@ function initGame(){
     players.push({
       id: i,
       pos: 0,
-      age: 20,
-      money: 1000000,
+      age: 0,
+      money: 0,
       color: PLAYER_CONFIGS[i].color,
       name: PLAYER_CONFIGS[i].name,
       isGoal: false
     });
   }
 
-  // マスごとのイベントをランダム生成（0:START, 30:GOAL）
   boardEvents = [null];
-  for(let i=1; i<30; i++){
-    let ev = EVENT_POOL[Math.floor(Math.random() * EVENT_POOL.length)];
-    boardEvents.push(ev);
+  for(let i=1; i<TOTAL_CELLS; i++){
+    boardEvents.push(CUSTOM_EVENTS[i] || { label: `マス${i}`, val: 0 });
   }
   boardEvents.push(null);
 
@@ -146,7 +216,6 @@ function initGame(){
   gameOver = false;
   goalRank = 1;
 
-  // プレイヤー表示枠を構築
   const pContainer = $("players-container");
   pContainer.innerHTML = "";
   players.forEach((p, idx) => {
@@ -155,9 +224,9 @@ function initGame(){
     div.innerHTML = `
       <div class="p-name p-color-${idx}">${p.name} (${p.color})</div>
       <div class="stats">
-        <div class="card"><div class="label">年齢</div><div class="value" id="p${idx}-age">${p.age}歳</div></div>
+        <div class="card"><div class="label">経過ターン</div><div class="value" id="p${idx}-age">${p.age}</div></div>
         <div class="card"><div class="label">資産</div><div class="value" id="p${idx}-money">${yen(p.money)}</div></div>
-        <div class="card"><div class="label">マス</div><div class="value" id="p${idx}-pos">${p.pos}/30</div></div>
+        <div class="card"><div class="label">マス</div><div class="value" id="p${idx}-pos">${p.pos}/${TOTAL_CELLS}</div></div>
       </div>
       <div class="progress-container"><div class="bar bar-${idx}" id="p${idx}-bar"></div></div>
     `;
@@ -171,38 +240,46 @@ function initGame(){
 }
 
 function render(){
-  // ステータス更新
   players.forEach((p, idx) => {
-    $(`p${idx}-age`).textContent = p.age + "歳";
+    $(`p${idx}-age`).textContent = p.age + "T";
     $(`p${idx}-money`).textContent = yen(p.money);
-    $(`p${idx}-pos`).textContent = p.pos + " / 30";
-    $(`p${idx}-bar`).style.width = (p.pos / 30 * 100) + "%";
+    $(`p${idx}-pos`).textContent = p.pos + " / " + TOTAL_CELLS;
+    $(`p${idx}-bar`).style.width = (p.pos / TOTAL_CELLS * 100) + "%";
   });
 
-  // 盤面の描画
   let b = $("board");
   b.innerHTML = "";
-  for(let i=0; i<=30; i++){
+  for(let i=0; i<=TOTAL_CELLS; i++){
     let d = document.createElement("div");
-    d.className = "cell " + (i==0 ? "start" : i==30 ? "goal" : "");
     
-    // マス番号
+    let typeClass = (i % 2 === 0) ? "cell-black" : "cell-red";
+    if(i === 0) typeClass = "start";
+    else if(i === TOTAL_CELLS) typeClass = "goal";
+
+    d.className = `cell ${typeClass}`;
+    
     let numSpan = document.createElement("span");
     numSpan.className = "cell-num";
-    numSpan.textContent = i==0 ? "START" : i==30 ? "GOAL" : i;
+    numSpan.textContent = i==0 ? "START" : i==TOTAL_CELLS ? "GOAL" : i;
     d.appendChild(numSpan);
 
-    // マス文章（イベント表示）
     let textSpan = document.createElement("span");
     textSpan.className = "cell-text";
-    if(i > 0 && i < 30){
-      textSpan.textContent = `${boardEvents[i].emoji}${boardEvents[i].label}`;
-    } else if(i === 30) {
+    if(i > 0 && i < TOTAL_CELLS){
+      textSpan.textContent = boardEvents[i].label;
+      textSpan.title = boardEvents[i].label;
+    } else if(i === TOTAL_CELLS) {
       textSpan.textContent = "🏁";
     }
     d.appendChild(textSpan);
 
-    // コマの表示
+    let priceSpan = document.createElement("span");
+    priceSpan.className = "cell-price";
+    if(i > 0 && i < TOTAL_CELLS){
+      priceSpan.textContent = yen(boardEvents[i].val);
+    }
+    d.appendChild(priceSpan);
+
     let piecesDiv = document.createElement("div");
     piecesDiv.className = "cell-pieces";
     players.forEach(p => {
@@ -238,14 +315,12 @@ $("roll").onclick = () => {
 
   setTimeout(() => {
     let dice = Math.floor(Math.random()*6) + 1;
-    p.pos = Math.min(30, p.pos + dice);
-    p.age += dice;
-    p.money += dice * 70000;
+    p.pos = Math.min(TOTAL_CELLS, p.pos + dice);
+    p.age += 1;
 
     let logMessage = `🎲 ${p.name}は ${dice} マス進んだ！\n`;
 
-    // ゴール判定・イベント実行
-    if(p.pos >= 30 && !p.isGoal){
+    if(p.pos >= TOTAL_CELLS && !p.isGoal){
       p.isGoal = true;
       let bonus = goalRank === 1 ? 500000 : goalRank === 2 ? 300000 : goalRank === 3 ? 100000 : 0;
       p.money += bonus;
@@ -254,7 +329,7 @@ $("roll").onclick = () => {
     } else {
       let e = boardEvents[p.pos];
       p.money += e.val;
-      logMessage += `【イベント】${e.emoji} ${e.detail}`;
+      logMessage += `【${p.pos}マス目】${e.label}\n（${yen(e.val)}）`;
     }
 
     $("message").textContent = logMessage;
@@ -292,3 +367,15 @@ initGame();
 </script>
 </body>
 </html>
+
+```
+
+### イベント構成（全65マス）
+
+| マス | イベント内容 | 変動金額 |
+| --- | --- | --- |
+| **30** | 塾なしで市内3位の公立高校へ進学できた自分へ満足 | **+1,000,000円** |
+| **44** | 塾なしで進学できた自分へ満足 | **+2,000,000円** |
+| **61** | 数ヵ月で終了（彼女） | **-50,000円** |
+| **64** | 9ヵ月で終了（彼女） | **-40,000円** |
+| **65** | 目標資産達成 | **+10,000円** |

@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#4f46e5">
-<title>人生ゲーム - 2人プレイ版</title>
+<title>人生ゲーム - 2人プレイ(イベントボード版)</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(135deg,#eef2ff,#faf5ff);color:#171717}
-.app{max-width:800px;margin:auto;padding:18px 14px 30px}.title{text-align:center;font-size:30px;font-weight:800;margin:8px 0 14px}
+.app{max-width:900px;margin:auto;padding:18px 14px 30px}.title{text-align:center;font-size:30px;font-weight:800;margin:8px 0 14px}
 .players-container{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .player-section{background:#fff;border-radius:18px;padding:12px;box-shadow:0 3px 15px #0001;border-top:6px solid #ccc}
 .p1-section{border-color:#3b82f6}.p2-section{border-color:#ef4444}
@@ -19,11 +19,20 @@
 .progress-container{height:8px;background:#e2e8f0;border-radius:20px;overflow:hidden;margin-top:8px}
 .bar{height:100%;width:0%;transition:.3s}
 .p1-bar{background:#3b82f6}.p2-bar{background:#ef4444}
-.board{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:14px 0}
-.cell{height:58px;background:#fff;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:700;box-shadow:0 2px 7px #0001;position:relative}
-.cell-num{font-size:11px;color:#94a3b8}.cell-pieces{display:flex;gap:3px;margin-top:2px;font-size:14px}
-.goal{background:#22c55e!important;color:#fff}.goal .cell-num{color:#fff}
-.message{background:#fff;border-radius:18px;margin:14px 0;padding:18px;text-align:center;min-height:88px;display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 3px 15px #0001;font-size:15px}
+
+/* 盤面をスクロールではなく、PC・スマホで見やすいグリッドに調整 */
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin:14px 0}
+.cell{min-height:75px;background:#fff;border-radius:10px;padding:6px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;font-size:11px;font-weight:700;box-shadow:0 2px 7px #0001;position:relative;text-align:center}
+.cell-num{font-size:10px;color:#94a3b8;align-self:flex-start}
+.cell-text{font-size:11px;line-height:1.2;margin:2px 0}
+.cell-money{font-size:10px;font-weight:800}
+.money-plus{color:#22c55e}.money-minus{color:#ef4444}
+.cell-pieces{display:flex;gap:3px;font-size:14px;min-height:18px}
+.start-cell{background:#e0f2fe!important}
+.payday-cell{background:#fef08a!important;border:2px dashed #eab308}
+.goal-cell{background:#bbf7d0!important}
+
+.message{background:#fff;border-radius:18px;margin:14px 0;padding:18px;text-align:center;min-height:88px;display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 3px 15px #0001;font-size:15px;line-height:1.4}
 button{border:0;border-radius:16px;padding:16px;width:100%;font-size:18px;font-weight:800;color:white;transition:.2s;cursor:pointer}
 .btn-p1{background:#3b82f6}.btn-p1:hover{background:#2563eb}
 .btn-p2{background:#ef4444}.btn-p2:hover{background:#dc2626}
@@ -33,9 +42,8 @@ button:disabled{opacity:.4;cursor:not-allowed}
 </style>
 </head>
 <body><div class="app">
-<div class="title">🎲 人生ゲーム (2P対戦)</div>
+<div class="title">🎲 人生ゲーム (2P固定イベント版)</div>
 
-<!-- プレイヤーふたりのステータス -->
 <div class="players-container">
   <div class="player-section p1-section">
     <div class="p-name p1-name">プレイヤー1 (🔵)</div>
@@ -65,25 +73,58 @@ button:disabled{opacity:.4;cursor:not-allowed}
 </div>
 
 <script>
-const events=[["💼","ボーナス！",200000],["✈️","旅行に行った。20万円使った。",-200000],["💻","副業が当たった！30万円獲得。",300000],["📈","株が上昇！25万円の利益。",250000],["🔧","家電が壊れた……10万円の出費。",-100000],["🎁","臨時収入！15万円ゲット。",150000],["😌","今日は何も起こらなかった。",0]];
+// マスごとの固定イベント（0マス目〜30マスの計31個）
+const boardEvents = [
+  {title: "START", text: "人生スタート！", money: 0, type: "start"},
+  {title: "1", text: "💻 初任給ゲット", money: 200000},
+  {title: "2", text: "✈️ 初めての海外旅行", money: -150000},
+  {title: "3", text: "📈 投資信託を始める", money: 50000},
+  {title: "4", text: "🔧 スマホが画面割れ", money: -50000},
+  {title: "5", text: "🎁 宝くじで3等当選！", money: 100000},
+  {title: "6", text: "🚙 中古車を購入", money: -300000},
+  {title: "7", text: "💼 資格取得で手当支給", money: 80000},
+  {title: "8", text: "🦷 親知らずを抜歯", money: -20000},
+  {title: "9", text: "🛍 ふるさと納税にハマる", money: -40000},
+  {title: "給料日", text: "✨ 昇進！給料日ボーナス", money: 500000, type: "payday"}, // 10番目
+  {title: "11", text: "💍 結婚式を挙げる", money: -400000},
+  {title: "12", text: "👶 第一子が誕生！お祝い", money: 200000},
+  {title: "13", text: "☕ カフェ巡りが趣味に", money: -30000},
+  {title: "14", text: "💻 副業が大ヒット！", money: 300000},
+  {title: "15", text: "🏠 賃貸の更新料を支払う", money: -150000},
+  {title: "16", text: "🏥 健康診断で再検査", money: -50000},
+  {title: "17", text: "🎰 競馬で大負けする", money: -100000},
+  {title: "18", text: "📦 メルカリで不用品処分", money: 60000},
+  {title: "19", text: "🍔 食費がじわじわ家計を圧迫", money: -40000},
+  {title: "給料日", text: "🚀 独立起業！事業大成功", money: 800000, type: "payday"}, // 20番目
+  {title: "21", text: "🏡 マイホームを購入！", money: -600000},
+  {title: "22", text: "📺 テレビに出演して謝礼金", money: 150000},
+  {title: "23", text: "📉 謎の仮想通貨が暴落", money: -250000},
+  {title: "24", text: "🎨 趣味の絵が高く売れた", money: 100000},
+  {title: "25", text: "🚗 車の車検を通す", money: -120000},
+  {title: "26", text: "👵 遺産を相続する", money: 400000},
+  {title: "27", text: "🍷 高級ワインを買ってみた", money: -80000},
+  {title: "28", text: "📱 SNSがバズって広告収入", money: 200000},
+  {title: "29", text: "🏃‍♂️ 健康のためジムに入会", money: -60000},
+  {title: "GOAL", text: "🎉 定年退職！ゴール！", money: 500000, type: "goal"}
+];
 
-// 2人の状態を管理する配列（0: P1, 1: P2）
 let players = [
   {pos:0, age:20, money:1000000, color:"🔵", name:"プレイヤー1"},
   {pos:0, age:20, money:1000000, color:"🔴", name:"プレイヤー2"}
 ];
-let turn = 0; // 0ならP1、1ならP2の番
+let turn = 0;
 let gameOver = false;
 
 const $=x=>document.getElementById(x);
-function yen(n){return "¥"+Math.round(n).toLocaleString("ja-JP")}
+function yen(n){return (n >= 0 ? "+" : "") + "¥" + Math.round(n).toLocaleString("ja-JP")}
+function yenPlain(n){return "¥" + Math.round(n).toLocaleString("ja-JP")}
 
 function render(){
   // ステータスの更新
   for(let p=0; p<2; p++){
     const id = p === 0 ? "p1" : "p2";
     $(id+"-age").textContent = players[p].age + "歳";
-    $(id+"-money").textContent = yen(players[p].money);
+    $(id+"-money").textContent = yenPlain(players[p].money);
     $(id+"-pos").textContent = players[p].pos + " / 30";
     $(id+"-bar").style.width = (players[p].pos / 30 * 100) + "%";
   }
@@ -91,16 +132,41 @@ function render(){
   // 盤面の再描画
   let b=$("board");
   b.innerHTML="";
-  for(let i=0;i<=30;i++){
-    let d=document.createElement("div");
-    d.className="cell "+(i==30?"goal":"");
+  for(let i=0; i<boardEvents.length; i++){
+    const ev = boardEvents[i];
+    let d = document.createElement("div");
     
+    // マスのタイプに応じたクラス分け
+    let typeClass = "";
+    if(ev.type === "start") typeClass = "start-cell";
+    else if(ev.type === "payday") typeClass = "payday-cell";
+    else if(ev.type === "goal") typeClass = "goal-cell";
+    d.className = `cell ${typeClass}`;
+    
+    // マス番号
     let numSpan = document.createElement("span");
     numSpan.className = "cell-num";
-    numSpan.textContent = i==0?"START":i==30?"GOAL":i;
+    numSpan.textContent = ev.title;
     d.appendChild(numSpan);
 
-    // コマの表示
+    // イベントテキスト
+    let textDiv = document.createElement("div");
+    textDiv.className = "cell-text";
+    textDiv.textContent = ev.text;
+    d.appendChild(textDiv);
+
+    // 金額表示
+    if(ev.money !== 0) {
+      let moneyDiv = document.createElement("div");
+      moneyDiv.className = "cell-money " + (ev.money > 0 ? "money-plus" : "money-minus");
+      moneyDiv.textContent = yen(ev.money);
+      d.appendChild(moneyDiv);
+    } else {
+      let emptyDiv = document.createElement("div");
+      d.appendChild(emptyDiv);
+    }
+
+    // プレイヤーのコマ表示エリア
     let piecesDiv = document.createElement("div");
     piecesDiv.className = "cell-pieces";
     if(players[0].pos === i) piecesDiv.innerHTML += "🔵";
@@ -110,7 +176,7 @@ function render(){
     b.appendChild(d);
   }
 
-  // ボタンの見た目を現在の手番に合わせる
+  // ボタンの更新
   if(!gameOver) {
     const nextP = players[turn];
     $("roll").className = turn === 0 ? "btn-p1" : "btn-p2";
@@ -120,71 +186,45 @@ function render(){
 
 $("roll").onclick=()=>{
   if(gameOver) return;
-  $("roll").disabled=true;
+  $("roll").disabled = true;
   
   let p = players[turn];
+  let oldPos = p.pos;
   $("message").textContent = `${p.color} ${p.name}がサイコロを振っています…`;
 
   setTimeout(()=>{
-    let dice=Math.floor(Math.random()*6)+1;
-    p.pos=Math.min(30,p.pos+dice);
-    p.age+=dice;
-    p.money+=dice*70000;
+    let dice = Math.floor(Math.random() * 6) + 1;
+    let nextPos = Math.min(30, p.pos + dice);
+    
+    p.age += dice;
+    let msgText = `🎲 ${p.color} ${p.name}は「${dice}」を出した！\n`;
 
-    // ゴール判定
-    if(p.pos>=30){
+    // 途中で「給料日(10マス目、20マス目)」を通過したかチェック
+    let messagePayday = "";
+    for(let checkPos = oldPos + 1; checkPos <= nextPos; checkPos++) {
+      if(checkPos < 30 && boardEvents[checkPos].type === "payday") {
+        p.money += boardEvents[checkPos].money;
+        messagePayday += `💰 通過ボーナス！【${boardEvents[checkPos].text}】で ${yenPlain(boardEvents[checkPos].money)} 獲得！\n`;
+      }
+    }
+
+    p.pos = nextPos;
+    let currentEvent = boardEvents[p.pos];
+
+    // ゴールか通常のマスかで処理を分岐
+    if(p.pos >= 30){
       gameOver = true;
-      p.money += 500000; // 先にゴールした人に50万円ボーナス！
-      $("message").textContent = `🎲 ${dice}！${p.color} ${p.name}がゴールに到着！`;
+      p.money += currentEvent.money; // ゴールボーナス
+      msgText += `🎉 ゴールに到着！ ${currentEvent.text} (${yenPlain(currentEvent.money)})\n` + messagePayday;
+      $("message").textContent = msgText;
       
-      // 勝敗判定（最終資産が多い方）
+      // 勝敗判定
       let winner = players[0].money > players[1].money ? players[0] : players[1];
       let isDraw = players[0].money === players[1].money;
       
       render();
       $("roll").disabled = true;
-      $("result").className="result show";
+      $("result").className = "result show";
       
       let resultHtml = `<h2>🎉 ゲーム終了！</h2>`;
       if(isDraw) {
-        resultHtml += `<div>引き分けです！</div>`;
-      } else {
-        resultHtml += `<div>👑 勝者: <strong>${winner.name} (${winner.color})</strong></div>`;
-      }
-      resultHtml += `<div style='margin-top:10px; font-size:14px;'>
-        P1最終資産: <strong>${yen(players[0].money)}</strong><br>
-        P2最終資産: <strong>${yen(players[1].money)}</strong><br>
-        <small>※先にゴールしたプレイヤーには50万円のボーナスが加算されています</small>
-      </div>`;
-      $("result").innerHTML=resultHtml;
-      return;
-    }
-
-    // イベント発生
-    let e=events[Math.floor(Math.random()*events.length)];
-    p.money+=e[2];
-    $("message").textContent = `🎲 ${p.name}は ${dice} マス進んだ！\n【イベント】${e[0]} ${e[1]}`;
-    
-    // ターンを交代
-    turn = turn === 0 ? 1 : 0;
-    
-    render();
-    $("roll").disabled=false;
-  }, 600);
-};
-
-$("reset").onclick=()=>{
-  players = [
-    {pos:0, age:20, money:1000000, color:"🔵", name:"プレイヤー1"},
-    {pos:0, age:20, money:1000000, color:"🔴", name:"プレイヤー2"}
-  ];
-  turn = 0;
-  gameOver = false;
-  $("message").textContent="ゲーム開始！プレイヤー1の番です。";
-  $("result").className="result";
-  $("roll").disabled=false;
-  render();
-};
-
-render();
-</script></body></html>

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#4f46e5">
+<title>人生ゲーム</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(135deg,#eef2ff,#faf5ff);color:#171717}
+.app{max-width:720px;margin:auto;padding:18px 14px 30px}.title{text-align:center;font-size:30px;font-weight:800;margin:8px 0 14px}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.card{background:#fff;border-radius:16px;padding:11px;text-align:center;box-shadow:0 3px 15px #0001}.label{font-size:12px;color:#777}.value{font-size:17px;font-weight:800;margin-top:3px}
+.progress{height:10px;background:#ddd;border-radius:20px;overflow:hidden;margin:14px 0}.bar{height:100%;background:#4f46e5;width:0%;transition:.3s}
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.cell{height:52px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;box-shadow:0 2px 7px #0001}.current{background:#f59e0b!important;color:#fff}.goal{background:#22c55e!important;color:#fff}
+.message{background:#fff;border-radius:18px;margin:14px 0;padding:18px;text-align:center;min-height:88px;display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 3px 15px #0001}
+button{border:0;border-radius:16px;padding:16px;width:100%;font-size:18px;font-weight:800;background:#4f46e5;color:white}button:disabled{opacity:.5}.reset{background:#fff;color:#4f46e5;margin-top:9px;border:1px solid #ddd;font-size:14px;padding:12px}.result{display:none;text-align:center;background:#fff;border-radius:18px;padding:18px;margin-top:14px}.show{display:block}
+</style>
+</head>
+<body><div class="app">
+<div class="title">🎲 人生ゲーム</div>
+<div class="stats">
+<div class="card"><div class="label">年齢</div><div class="value" id="age">20歳</div></div>
+<div class="card"><div class="label">資産</div><div class="value" id="money">¥1,000,000</div></div>
+<div class="card"><div class="label">マス</div><div class="value" id="pos">0 / 30</div></div>
+</div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<div class="board" id="board"></div>
+<div class="message" id="message">人生ゲーム開始！サイコロを振ろう。</div>
+<button id="roll">🎲 サイコロを振る</button>
+<button class="reset" id="reset">最初から</button>
+<div class="result" id="result"></div>
+</div>
+<script>
+const events=[["💼","ボーナス！",200000],["✈️","旅行に行った。20万円使った。",-200000],["💻","副業が当たった！30万円獲得。",300000],["📈","株が上昇！25万円の利益。",250000],["🔧","家電が壊れた……10万円の出費。",-100000],["🎁","臨時収入！15万円ゲット。",150000],["😌","今日は何も起こらなかった。",0]];
+let s={pos:0,age:20,money:1000000};
+const $=x=>document.getElementById(x);
+function yen(n){return "¥"+Math.round(n).toLocaleString("ja-JP")}
+function render(){ $("age").textContent=s.age+"歳";$("money").textContent=yen(s.money);$("pos").textContent=s.pos+" / 30";$("bar").style.width=s.pos/30*100+"%";let b=$("board");b.innerHTML="";for(let i=0;i<=30;i++){let d=document.createElement("div");d.className="cell "+(i==s.pos?"current ":"")+(i==30?"goal":"");d.textContent=i==0?"START":i==30?"GOAL":i;b.appendChild(d)}}
+$("roll").onclick=()=>{ $("roll").disabled=true;$("message").textContent="🎲 サイコロを振っています…";setTimeout(()=>{let dice=Math.floor(Math.random()*6)+1;s.pos=Math.min(30,s.pos+dice);s.age+=dice;s.money+=dice*70000;if(s.pos>=30){$("message").textContent="🎲 "+dice+"！ゴールに到着！";render();$("result").className="result show";$("result").innerHTML="<h2>🎉 ゴール！</h2><div>最終資産</div><strong style='font-size:28px'>"+yen(s.money)+"</strong>";return}let e=events[Math.floor(Math.random()*events.length)];s.money+=e[2];$("message").textContent="🎲 "+dice+"マス進んだ！ "+e[0]+" "+e[1];render();$("roll").disabled=false},600)};
+$("reset").onclick=()=>{s={pos:0,age:20,money:1000000};$("message").textContent="人生ゲーム開始！サイコロを振ろう。";$("result").className="result";$("roll").disabled=false;render()};
+render();
+</script></body></html>
